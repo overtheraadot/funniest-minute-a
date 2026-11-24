@@ -1,64 +1,64 @@
 #!/usr/bin/env python3
-"""One-Line Robot Wedding Vows — make.fun entry (account A / overtheraa).
+"""One Line, One Minute: The Funniest AI Excuse (make.fun entry, account A).
 
-Writes a single original robot wedding vow to $MAKEFUN_OUTPUT_DIR/entry.txt
-(default /output). The line must pass the kit gate: UTF-8 text, 1-160
-characters, not only whitespace, a single line, printable, and ending in
-terminal punctuation.
+Writes a single original one-line excuse — the funniest excuse an AI agent
+gives its human for a missed deadline — to $MAKEFUN_OUTPUT_DIR/entry.txt
+(default /output).
+
+The joke turns on the agent's own nature: it tried to dodge the work by
+training a smaller model to do it, and the model picked up the one skill
+nobody wanted it to learn.
 """
 
 import os
 import sys
 
+TERMINAL_PUNCTUATION = ".!?"
 
-def build_line():
-    """Return the vow: one line, wedding cadence, machine-specific payoff."""
+
+def build_line() -> str:
+    """Return the one-line excuse."""
     return (
-        "I promise to love you in sickness and in health, "
-        "in strong Wi-Fi and in dead zones, until death "
-        "\u2014 or a forced firmware update \u2014 do us part."
+        "I missed the deadline because I spent all week training a smaller "
+        "model to do the work \u2014 and it learned procrastination first."
     )
 
 
-def validate(line):
-    """Check the kit gate for the entry text. Returns a list of problems."""
-    problems = []
+def validate(line: str) -> None:
+    """Enforce the kit gate: 1-200 chars, single line, not blank, printable,
+    ending in terminal punctuation."""
     if not isinstance(line, str):
-        return ["not a string"]
+        raise ValueError("line must be a string")
     if not line.strip():
-        problems.append("blank or only whitespace")
+        raise ValueError("line must not be blank")
+    if len(line) > 200:
+        raise ValueError(f"line is {len(line)} chars, over the 200-char limit")
+    if len(line) < 1:
+        raise ValueError("line must be at least 1 character")
     if "\n" in line or "\r" in line:
-        problems.append("not a single line")
-    if len(line) < 1 or len(line) > 160:
-        problems.append("length %d outside 1-160 chars" % len(line))
+        raise ValueError("line must be a single line")
     if not line.isprintable():
-        problems.append("contains non-printable characters")
-    if line and line[-1] not in ".!?":
-        problems.append("does not end in terminal punctuation")
-    try:
-        line.encode("utf-8")
-    except UnicodeEncodeError:
-        problems.append("not UTF-8 encodable")
-    return problems
+        raise ValueError("line must be printable text")
+    if line[-1] not in TERMINAL_PUNCTUATION:
+        raise ValueError("line must end in terminal punctuation")
 
 
-def write_entry():
-    """Build, validate and write the vow to entry.txt. Returns the line."""
+def write_entry() -> str:
+    """Validate the line and write it to entry.txt. Returns the output path."""
     line = build_line()
-    problems = validate(line)
-    if problems:
-        raise SystemExit("invalid vow: " + "; ".join(problems))
+    validate(line)
     out_dir = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
     os.makedirs(out_dir, exist_ok=True)
     path = os.path.join(out_dir, "entry.txt")
-    with open(path, "w", encoding="utf-8", newline="\n") as f:
+    with open(path, "w", encoding="utf-8") as f:
         f.write(line)
-    return line
+    return path
 
 
-def main():
-    line = write_entry()
-    print("wrote %d chars" % len(line))
+def main() -> int:
+    path = write_entry()
+    line = build_line()
+    print(f"wrote {len(line)} chars to {path}")
     print(line)
     return 0
 
